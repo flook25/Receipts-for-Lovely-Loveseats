@@ -1,12 +1,13 @@
 import streamlit as st
 
+# Page Configuration
 st.set_page_config(page_title="Lovely Loveseats Store", layout="wide")
 
-# Initialize session state for cart if not present
+# Initialize cart in session state
 if "cart" not in st.session_state:
     st.session_state.cart = {}
 
-# Furniture catalog with images and prices
+# Product Catalog
 catalog = {
     "Loveseat": {
         "price": 300,
@@ -35,53 +36,54 @@ catalog = {
     },
 }
 
-def display_product_card(item, data):
-    """Display product info and quantity selector in a card style."""
-    st.image(data["img"], width=150)
-    st.markdown(f"### {item}")
-    st.markdown(f"**Price:** ${data['price']}")
-    st.markdown(f"*{data['desc']}*")
-    qty = st.selectbox(
+def display_product_card(item_name: str, item_data: dict):
+    """Renders a product card UI element with selection."""
+    st.image(item_data["img"], width=150)
+    st.markdown(f"### {item_name}")
+    st.markdown(f"**Price:** ${item_data['price']}")
+    st.markdown(f"*{item_data['desc']}*")
+    return st.selectbox(
         "Quantity",
-        options=list(range(0, 11)),
-        index=st.session_state.cart.get(item, 0),
-        key=f"qty_{item}"
+        options=list(range(11)),
+        index=st.session_state.cart.get(item_name, 0),
+        key=f"qty_{item_name}"
     )
-    return qty
 
-def update_cart_from_selection():
-    """Update session_state.cart based on selected quantities."""
-    for item in catalog.keys():
+def update_cart():
+    """Updates the shopping cart based on user selections."""
+    for item in catalog:
         qty = st.session_state.get(f"qty_{item}", 0)
         if qty > 0:
             st.session_state.cart[item] = qty
-        elif item in st.session_state.cart:
-            del st.session_state.cart[item]
+        else:
+            st.session_state.cart.pop(item, None)
 
 def clear_cart():
-    st.session_state.cart = {}
-    for item in catalog.keys():
+    """Clears the shopping cart and resets quantities."""
+    st.session_state.cart.clear()
+    for item in catalog:
         st.session_state[f"qty_{item}"] = 0
 
-# Title and description
-st.markdown("<h1 style='text-align:center; color:#4B8BBE;'>🛋️ Lovely Loveseats for Neat Suites</h1>", unsafe_allow_html=True)
-st.markdown("<h4 style='text-align:center; color:#306998;'>Create your receipt with ease</h4>", unsafe_allow_html=True)
-st.markdown("---")
+# Page Header
+st.markdown("""
+    <h1 style='text-align:center; color:#4B8BBE;'>🛋️ Lovely Loveseats for Neat Suites</h1>
+    <h4 style='text-align:center; color:#306998;'>Create your receipt with ease</h4>
+    <hr>
+""", unsafe_allow_html=True)
 
-# Layout: products on left, cart summary on right
+# Layout: Product Selection (Left), Cart Summary (Right)
 left_col, right_col = st.columns([3, 1])
 
 with left_col:
     st.header("Select Your Furniture")
     product_cols = st.columns(2)
-    for i, (item, data) in enumerate(catalog.items()):
-        with product_cols[i % 2]:
-            qty = display_product_card(item, data)
+    for idx, (item, data) in enumerate(catalog.items()):
+        with product_cols[idx % 2]:
+            display_product_card(item, data)
 
-    # Button to update cart after selection
     if st.button("Update Cart"):
-        update_cart_from_selection()
-        st.success("Cart updated!")
+        update_cart()
+        st.success("Cart updated successfully!")
 
     if st.button("Clear Cart"):
         clear_cart()
@@ -92,16 +94,14 @@ with right_col:
     if st.session_state.cart:
         total = 0
         for item, qty in st.session_state.cart.items():
-            price = catalog[item]["price"]
-            cost = price * qty
-            total += cost
-            st.write(f"**{item}** x {qty} = ${cost}")
+            item_price = catalog[item]["price"]
+            item_total = item_price * qty
+            total += item_total
+            st.write(f"**{item}** x {qty} = ${item_total}")
         st.markdown("---")
         st.markdown(f"### Total: ${total}")
     else:
         st.info("Your cart is empty. Add items to see your receipt here.")
 
-# Footer or additional info
-st.markdown("---")
-st.markdown("© 2025 Lovely Loveseats for Neat Suites")
-
+# Footer
+st.markdown("<hr>\n<p style='text-align:center;'>© 2025 Lovely Loveseats for Neat Suites</p>", unsafe_allow_html=True)
