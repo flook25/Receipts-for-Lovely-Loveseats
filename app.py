@@ -40,7 +40,7 @@ catalog = {
 }
 
 def update_qty(item_name: str):
-    qty = st.session_state.get(f"qty_{item_name}", 0)
+    qty = int(st.session_state.get(f"qty_{item_name}", 0))
     if qty > 0:
         st.session_state.cart[item_name] = qty
     else:
@@ -56,7 +56,7 @@ def display_product_card(item_name: str, item_data: dict):
         label="Quantity",
         min_value=0,
         max_value=10,
-        value=st.session_state.cart.get(item_name, 0),
+        value=int(st.session_state.cart.get(item_name, 0)),
         step=1,
         key=f"qty_{item_name}",
         on_change=update_qty,
@@ -70,12 +70,12 @@ def clear_cart():
         st.session_state[f"qty_{item}"] = 0
 
 def generate_pdf_receipt():
-    """Generates a PDF receipt from the cart."""
+    """Generates a PDF receipt from the cart, handling pagination."""
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
     y = height - 50
-    
+
     p.setFont("Helvetica-Bold", 16)
     p.drawString(50, y, "Lovely Loveseats Receipt")
     y -= 30
@@ -83,11 +83,21 @@ def generate_pdf_receipt():
     p.setFont("Helvetica", 12)
     total = 0
     for item, qty in st.session_state.cart.items():
+        qty = int(qty)
         price = catalog[item]['price']
         cost = qty * price
         total += cost
-        p.drawString(50, y, f"{item} x {qty} = ${cost}")
+        line = f"{item} x {qty} = ${cost}"
+        if y < 100:
+            p.showPage()
+            p.setFont("Helvetica", 12)
+            y = height - 50
+        p.drawString(50, y, line)
         y -= 20
+
+    if y < 100:
+        p.showPage()
+        y = height - 50
 
     y -= 10
     p.line(50, y, width - 50, y)
@@ -99,7 +109,7 @@ def generate_pdf_receipt():
     p.showPage()
     p.save()
     buffer.seek(0)
-    return buffer
+    return buffer.getvalue()
 
 # Page Header
 st.markdown("""
