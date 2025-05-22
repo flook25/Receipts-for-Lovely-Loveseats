@@ -1,7 +1,13 @@
 import streamlit as st
 from io import BytesIO, StringIO
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
+
+# Attempt to import reportlab, fallback if unavailable
+try:
+    from reportlab.lib.pagesizes import letter
+    from reportlab.pdfgen import canvas
+    REPORTLAB_AVAILABLE = True
+except ImportError:
+    REPORTLAB_AVAILABLE = False
 
 # Page Configuration
 st.set_page_config(page_title="Lovely Loveseats Store", layout="wide")
@@ -70,16 +76,13 @@ def clear_cart():
         st.session_state[f"qty_{item}"] = 0
 
 def generate_pdf_receipt():
-    """Generates a PDF receipt from the cart, handling pagination."""
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
     y = height - 50
-
     p.setFont("Helvetica-Bold", 16)
     p.drawString(50, y, "Lovely Loveseats Receipt")
     y -= 30
-
     p.setFont("Helvetica", 12)
     total = 0
     for item, qty in st.session_state.cart.items():
@@ -94,21 +97,32 @@ def generate_pdf_receipt():
             y = height - 50
         p.drawString(50, y, line)
         y -= 20
-
     if y < 100:
         p.showPage()
         y = height - 50
-
     y -= 10
     p.line(50, y, width - 50, y)
     y -= 20
     p.drawString(50, y, f"Total: ${total}")
     y -= 30
     p.drawString(50, y, "Thank you for shopping with us!")
-
     p.showPage()
     p.save()
     buffer.seek(0)
+    return buffer.getvalue()
+
+def generate_text_receipt():
+    buffer = StringIO()
+    total = 0
+    buffer.write("Lovely Loveseats Receipt\n\n")
+    for item, qty in st.session_state.cart.items():
+        price = catalog[item]['price']
+        cost = qty * price
+        total += cost
+        buffer.write(f"{item} x {qty} = ${cost}\n")
+    buffer.write("\n----------------------\n")
+    buffer.write(f"Total: ${total}\n")
+    buffer.write("Thank you for shopping with us!\n")
     return buffer.getvalue()
 
 # Page Header
@@ -144,13 +158,22 @@ with right_col:
         st.markdown("---")
         st.markdown(f"### Total: ${total}")
 
-        pdf_bytes = generate_pdf_receipt()
-        st.download_button(
-            label="📄 Download PDF Receipt",
-            data=pdf_bytes,
-            file_name="lovely_loveseats_receipt.pdf",
-            mime="application/pdf"
-        )
+        if REPORTLAB_AVAILABLE:
+            pdf_bytes = generate_pdf_receipt()
+            st.download_button(
+                label="📄 Download PDF Receipt",
+                data=pdf_bytes,
+                file_name="lovely_loveseats_receipt.pdf",
+                mime="application/pdf"
+            )
+        else:
+            text_receipt = generate_text_receipt()
+            st.download_button(
+                label="📄 Download TXT Receipt (PDF not available)",
+                data=text_receipt,
+                file_name="lovely_loveseats_receipt.txt",
+                mime="text/plain"
+            )
     else:
         st.info("Your cart is empty. Add items to see your receipt here.")
 
