@@ -10,27 +10,27 @@ if "cart" not in st.session_state:
 catalog = {
     "Loveseat": {
         "price": 300,
-        "img": "https://cdn-icons-png.flaticon.com/512/616/616408.png",
+        "img": "https://cdn-icons-png.flaticon.com/128/2123/2123765.png",
         "desc": "Comfortable 2-seater sofa."
     },
     "Armchair": {
         "price": 150,
-        "img": "https://cdn-icons-png.flaticon.com/512/616/616408.png",
+        "img": "https://cdn-icons-png.flaticon.com/128/1606/1606478.png",
         "desc": "Cozy single-seat armchair."
     },
     "Coffee Table": {
         "price": 120,
-        "img": "https://cdn-icons-png.flaticon.com/512/616/616408.png",
+        "img": "https://cdn-icons-png.flaticon.com/128/2007/2007904.png",
         "desc": "Stylish wooden coffee table."
     },
     "Bookshelf": {
         "price": 200,
-        "img": "https://cdn-icons-png.flaticon.com/512/616/616408.png",
+        "img": "https://cdn-icons-png.flaticon.com/128/1133/1133864.png",
         "desc": "Spacious bookshelf for your books."
     },
     "Floor Lamp": {
         "price": 80,
-        "img": "https://cdn-icons-png.flaticon.com/512/616/616408.png",
+        "img": "https://cdn-icons-png.flaticon.com/128/5445/5445890.png",
         "desc": "Elegant floor lamp with warm light."
     },
 }
