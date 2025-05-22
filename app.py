@@ -1,4 +1,5 @@
 import streamlit as st
+from io import StringIO
 
 # Page Configuration
 st.set_page_config(page_title="Lovely Loveseats Store", layout="wide")
@@ -36,33 +37,50 @@ catalog = {
     },
 }
 
+def update_qty(item_name: str):
+    qty = st.session_state.get(f"qty_{item_name}", 0)
+    if qty > 0:
+        st.session_state.cart[item_name] = qty
+    else:
+        st.session_state.cart.pop(item_name, None)
+
 def display_product_card(item_name: str, item_data: dict):
     """Renders a product card UI element with selection."""
     st.image(item_data["img"], width=150)
     st.markdown(f"### {item_name}")
     st.markdown(f"**Price:** ${item_data['price']}")
     st.markdown(f"*{item_data['desc']}*")
-    return st.selectbox(
-        "Quantity",
-        options=list(range(11)),
-        index=st.session_state.cart.get(item_name, 0),
-        key=f"qty_{item_name}"
+    st.number_input(
+        label="Quantity",
+        min_value=0,
+        max_value=10,
+        value=st.session_state.cart.get(item_name, 0),
+        step=1,
+        key=f"qty_{item_name}",
+        on_change=update_qty,
+        args=(item_name,)
     )
-
-def update_cart():
-    """Updates the shopping cart based on user selections."""
-    for item in catalog:
-        qty = st.session_state.get(f"qty_{item}", 0)
-        if qty > 0:
-            st.session_state.cart[item] = qty
-        else:
-            st.session_state.cart.pop(item, None)
 
 def clear_cart():
     """Clears the shopping cart and resets quantities."""
     st.session_state.cart.clear()
     for item in catalog:
         st.session_state[f"qty_{item}"] = 0
+
+def generate_receipt():
+    """Generates a text receipt from the cart."""
+    total = 0
+    buffer = StringIO()
+    buffer.write("\n=== Lovely Loveseats Receipt ===\n")
+    for item, qty in st.session_state.cart.items():
+        price = catalog[item]['price']
+        cost = qty * price
+        total += cost
+        buffer.write(f"{item} x {qty} = ${cost}\n")
+    buffer.write("-----------------------------\n")
+    buffer.write(f"Total: ${total}\n")
+    buffer.write("Thank you for shopping with us!\n")
+    return buffer.getvalue()
 
 # Page Header
 st.markdown("""
@@ -81,10 +99,6 @@ with left_col:
         with product_cols[idx % 2]:
             display_product_card(item, data)
 
-    if st.button("Update Cart"):
-        update_cart()
-        st.success("Cart updated successfully!")
-
     if st.button("Clear Cart"):
         clear_cart()
         st.success("Cart cleared!")
@@ -100,6 +114,14 @@ with right_col:
             st.write(f"**{item}** x {qty} = ${item_total}")
         st.markdown("---")
         st.markdown(f"### Total: ${total}")
+
+        receipt_text = generate_receipt()
+        st.download_button(
+            label="📄 Download Receipt",
+            data=receipt_text,
+            file_name="lovely_loveseats_receipt.txt",
+            mime="text/plain"
+        )
     else:
         st.info("Your cart is empty. Add items to see your receipt here.")
 
