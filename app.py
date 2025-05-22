@@ -8,7 +8,7 @@ st.markdown("---")
 
 # Furniture catalog with prices and image URLs (replace with your images or URLs)
 catalog = {
-    "Loveseat": {"price": 300, "img": "https://cdn-icons-png.flaticon.com/128/7419/7419971.png"},
+    "Loveseat": {"price": 300, "img": "https://cdn-icons-png.flaticon.com/128/2123/2123765.png"},
     "Armchair": {"price": 150, "img": "https://cdn-icons-png.flaticon.com/128/2271/2271494.png"},
     "Coffee Table": {"price": 120, "img": "https://cdn-icons-png.flaticon.com/128/9620/9620594.png"},
     "Bookshelf": {"price": 200, "img": "https://cdn-icons-png.flaticon.com/128/2251/2251824.png"},
